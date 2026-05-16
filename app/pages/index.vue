@@ -275,7 +275,7 @@ async function downloadReceipt() {
                       icon="i-lucide-calendar-x-2"
                       @click="doFullRandomDate"
                     >
-                      Full Random
+                      <span class="hidden sm:inline">Full </span>Random
                     </UButton>
                     <UButton
                       :color="showDatePanel ? 'primary' : 'neutral'"
@@ -283,7 +283,8 @@ async function downloadReceipt() {
                       icon="i-lucide-calendar-range"
                       @click="showDatePanel = !showDatePanel"
                     >
-                      Constrained
+                      <span class="hidden sm:inline">Constrained</span>
+                      <span class="sm:hidden">Range</span>
                     </UButton>
                   </div>
 
@@ -402,10 +403,10 @@ async function downloadReceipt() {
               </UButton>
             </div>
 
-            <!-- Column headers -->
+            <!-- Column headers (desktop only) -->
             <div
               v-if="form.products.length > 0"
-              class="grid gap-2 mb-1 px-1"
+              class="hidden sm:grid gap-2 mb-1 px-1"
               style="grid-template-columns: minmax(0,1fr) 100px 120px 64px"
             >
               <span class="text-xs text-gray-400 dark:text-gray-500 font-medium">Name</span>
@@ -416,85 +417,157 @@ async function downloadReceipt() {
 
             <!-- Product rows -->
             <div class="space-y-2">
-              <div
-                v-for="product in form.products"
-                :key="product.id"
-                class="grid gap-2 items-center"
-                style="grid-template-columns: minmax(0,1fr) 100px 120px 64px"
-              >
-                <!-- Name + shuffle -->
-                <div class="flex gap-1 min-w-0">
-                  <UInput
-                    v-model="product.name"
-                    placeholder="Product name"
-                    class="flex-1 min-w-0"
-                    size="sm"
-                  />
-                  <UButton
-                    size="sm"
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-lucide-shuffle"
-                    square
-                    @click="randomizeProductName(product)"
-                  />
+              <div v-for="product in form.products" :key="product.id">
+
+                <!-- Mobile layout (< sm): card with 2 rows -->
+                <div class="sm:hidden space-y-2 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+                  <div class="flex gap-2 items-center">
+                    <UInput
+                      v-model="product.name"
+                      placeholder="Product name"
+                      class="flex-1"
+                      size="sm"
+                    />
+                    <UButton
+                      size="sm"
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-shuffle"
+                      square
+                      @click="randomizeProductName(product)"
+                    />
+                    <UButton
+                      size="sm"
+                      color="error"
+                      variant="ghost"
+                      icon="i-lucide-trash-2"
+                      square
+                      @click="removeProduct(product.id)"
+                    />
+                  </div>
+                  <div class="flex gap-3">
+                    <div class="flex-1 space-y-1">
+                      <div class="text-xs text-gray-400 dark:text-gray-500">Qty</div>
+                      <div class="flex gap-1">
+                        <UInputNumber
+                          v-model="product.quantity"
+                          :min="1"
+                          :max="9999"
+                          :step="1"
+                          :increment="false"
+                          :decrement="false"
+                          size="sm"
+                          class="flex-1"
+                        />
+                        <UButton
+                          size="sm"
+                          color="neutral"
+                          variant="ghost"
+                          icon="i-lucide-dice-5"
+                          square
+                          @click="randomizeProductQty(product)"
+                        />
+                      </div>
+                    </div>
+                    <div class="flex-1 space-y-1">
+                      <div class="text-xs text-gray-400 dark:text-gray-500">Unit Price</div>
+                      <div class="flex gap-1">
+                        <UInputNumber
+                          v-model="product.unitPrice"
+                          :min="0"
+                          :step="0.01"
+                          :increment="false"
+                          :decrement="false"
+                          :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
+                          size="sm"
+                          class="flex-1"
+                        />
+                        <UButton
+                          size="sm"
+                          color="neutral"
+                          variant="ghost"
+                          icon="i-lucide-dice-5"
+                          square
+                          @click="randomizeProductPrice(product)"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Quantity + dice -->
-                <div class="flex gap-1 items-center">
-                  <UInputNumber
-                    v-model="product.quantity"
-                    :min="1"
-                    :max="9999"
-                    :step="1"
-                    :increment="false"
-                    :decrement="false"
-                    size="sm"
-                    class="flex-1 min-w-0"
-                  />
-                  <UButton
-                    size="sm"
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-lucide-dice-5"
-                    square
-                    @click="randomizeProductQty(product)"
-                  />
+                <!-- Desktop layout (sm+): single-row grid -->
+                <div
+                  class="hidden sm:grid gap-2 items-center"
+                  style="grid-template-columns: minmax(0,1fr) 100px 120px 64px"
+                >
+                  <div class="flex gap-1 min-w-0">
+                    <UInput
+                      v-model="product.name"
+                      placeholder="Product name"
+                      class="flex-1 min-w-0"
+                      size="sm"
+                    />
+                    <UButton
+                      size="sm"
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-shuffle"
+                      square
+                      @click="randomizeProductName(product)"
+                    />
+                  </div>
+                  <div class="flex gap-1 items-center">
+                    <UInputNumber
+                      v-model="product.quantity"
+                      :min="1"
+                      :max="9999"
+                      :step="1"
+                      :increment="false"
+                      :decrement="false"
+                      size="sm"
+                      class="flex-1 min-w-0"
+                    />
+                    <UButton
+                      size="sm"
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-dice-5"
+                      square
+                      @click="randomizeProductQty(product)"
+                    />
+                  </div>
+                  <div class="flex gap-1 items-center">
+                    <UInputNumber
+                      v-model="product.unitPrice"
+                      :min="0"
+                      :step="0.01"
+                      :increment="false"
+                      :decrement="false"
+                      :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
+                      size="sm"
+                      class="flex-1 min-w-0"
+                    />
+                    <UButton
+                      size="sm"
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-dice-5"
+                      square
+                      @click="randomizeProductPrice(product)"
+                    />
+                  </div>
+                  <div class="flex justify-end">
+                    <UButton
+                      size="sm"
+                      color="error"
+                      variant="ghost"
+                      icon="i-lucide-trash-2"
+                      square
+                      @click="removeProduct(product.id)"
+                    />
+                  </div>
                 </div>
 
-                <!-- Unit price + dice -->
-                <div class="flex gap-1 items-center">
-                  <UInputNumber
-                    v-model="product.unitPrice"
-                    :min="0"
-                    :step="0.01"
-                    :increment="false"
-                    :decrement="false"
-                    :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
-                    size="sm"
-                    class="flex-1 min-w-0"
-                  />
-                  <UButton
-                    size="sm"
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-lucide-dice-5"
-                    square
-                    @click="randomizeProductPrice(product)"
-                  />
-                </div>
-
-                <!-- Delete -->
-                <div class="flex justify-end">
-                  <UButton
-                    size="sm"
-                    color="error"
-                    variant="ghost"
-                    icon="i-lucide-trash-2"
-                    square
-                    @click="removeProduct(product.id)"
-                  />
-                </div>
               </div>
 
               <!-- Empty state -->

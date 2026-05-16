@@ -3,4 +3,7 @@ export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
   modules: ['@nuxt/ui'],
   ssr: false,
+  app: {
+    baseURL: process.env.NUXT_APP_BASE_URL ?? '/',
+  },
 })
