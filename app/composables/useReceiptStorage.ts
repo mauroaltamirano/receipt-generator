@@ -7,6 +7,22 @@ export interface Product {
 
 export type PaymentMethod = 'CONTANTI' | 'BANCOMAT' | 'CARTA DI CREDITO'
 
+export interface RandomizeSettings {
+  store: boolean
+  receiptNumber: boolean
+  date: boolean
+  dateMode: 'full' | 'range'
+  dateFrom: string
+  dateTo: string
+  time: boolean
+  productCount: boolean
+  productCountMin: number
+  productCountMax: number
+  productNames: boolean
+  productQtys: boolean
+  productPrices: boolean
+}
+
 export interface ReceiptFormData {
   storeName: string
   storeAddress: string
@@ -19,17 +35,33 @@ export interface ReceiptFormData {
   cashGiven: number
   background: string
   products: Product[]
+  randomize: RandomizeSettings
 }
 
 const STORAGE_KEY = 'receipt-generator-v2'
 
 export function useReceiptStorage() {
   function newProduct(): Product {
+    return { id: crypto.randomUUID(), name: '', quantity: 1, unitPrice: 0 }
+  }
+
+  function defaultRandomize(): RandomizeSettings {
+    const now = new Date()
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
     return {
-      id: crypto.randomUUID(),
-      name: '',
-      quantity: 1,
-      unitPrice: 0,
+      store: false,
+      receiptNumber: false,
+      date: false,
+      dateMode: 'full',
+      dateFrom: oneMonthAgo.toISOString().split('T')[0]!,
+      dateTo: now.toISOString().split('T')[0]!,
+      time: false,
+      productCount: false,
+      productCountMin: 2,
+      productCountMax: 8,
+      productNames: false,
+      productQtys: false,
+      productPrices: false,
     }
   }
 
@@ -47,6 +79,7 @@ export function useReceiptStorage() {
       cashGiven: 0,
       background: 'plain',
       products: [newProduct()],
+      randomize: defaultRandomize(),
     }
   }
 
@@ -59,6 +92,8 @@ export function useReceiptStorage() {
         return {
           ...def,
           ...parsed,
+          // Deep merge randomize so new fields always get defaults
+          randomize: { ...def.randomize, ...(parsed.randomize ?? {}) },
           products:
             Array.isArray(parsed.products) && parsed.products.length > 0
               ? parsed.products
@@ -70,15 +105,11 @@ export function useReceiptStorage() {
   }
 
   function save(data: ReceiptFormData) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    } catch {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch {}
   }
 
   function clear() {
-    try {
-      localStorage.removeItem(STORAGE_KEY)
-    } catch {}
+    try { localStorage.removeItem(STORAGE_KEY) } catch {}
   }
 
   return { load, save, clear, newProduct, defaultData }
