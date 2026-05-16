@@ -1,19 +1,19 @@
 export const PRESET_STORES = [
-  { name: 'Supermercato Aurora', vatId: 'IT12345678901' },
-  { name: 'Farmacia Centrale', vatId: 'IT98765432109' },
-  { name: 'Bar Ristorante Il Sole', vatId: 'IT11223344556' },
-  { name: 'Elettronica Futura', vatId: 'IT55667788990' },
-  { name: 'Libreria del Centro', vatId: 'IT33445566778' },
-  { name: 'Ottica Vision', vatId: 'IT77889900123' },
-  { name: 'Tabaccheria Da Mario', vatId: 'IT44556677889' },
-  { name: 'Abbigliamento Fashion', vatId: 'IT22334455667' },
-  { name: 'Pasticceria Dolce Vita', vatId: 'IT66778899001' },
-  { name: 'Cartoleria Express', vatId: 'IT88990011223' },
-  { name: 'Macelleria Da Nino', vatId: 'IT99001122334' },
-  { name: 'Fruttivendolo Bio', vatId: 'IT10111213141' },
-  { name: 'Panificio Artigianale', vatId: 'IT15161718191' },
-  { name: 'Ferramenta Brico', vatId: 'IT20212223242' },
-  { name: 'Pizzeria Bella Napoli', vatId: 'IT25262728292' },
+  { name: 'Supermercato Aurora', vatId: 'IT12345678901', address: 'Via Roma, 14 - 20121 Milano MI' },
+  { name: 'Farmacia Centrale', vatId: 'IT98765432109', address: 'Corso Italia, 3 - 00185 Roma RM' },
+  { name: 'Bar Ristorante Il Sole', vatId: 'IT11223344556', address: 'Piazza Garibaldi, 8 - 80142 Napoli NA' },
+  { name: 'Elettronica Futura', vatId: 'IT55667788990', address: 'Via Nazionale, 55 - 50123 Firenze FI' },
+  { name: 'Libreria del Centro', vatId: 'IT33445566778', address: 'Via Mazzini, 22 - 40121 Bologna BO' },
+  { name: 'Ottica Vision', vatId: 'IT77889900123', address: 'Corso Vittorio, 17 - 10121 Torino TO' },
+  { name: 'Tabaccheria Da Mario', vatId: 'IT44556677889', address: 'Via Cavour, 6 - 16121 Genova GE' },
+  { name: 'Abbigliamento Fashion', vatId: 'IT22334455667', address: 'Galleria Umberto, 2 - 80132 Napoli NA' },
+  { name: 'Pasticceria Dolce Vita', vatId: 'IT66778899001', address: 'Via dei Fori, 9 - 00186 Roma RM' },
+  { name: 'Cartoleria Express', vatId: 'IT88990011223', address: 'Via Torino, 38 - 20123 Milano MI' },
+  { name: 'Macelleria Da Nino', vatId: 'IT99001122334', address: 'Via Mercato, 11 - 50122 Firenze FI' },
+  { name: 'Fruttivendolo Bio', vatId: 'IT10111213141', address: 'Via Verde, 5 - 40139 Bologna BO' },
+  { name: 'Panificio Artigianale', vatId: 'IT15161718191', address: 'Vicolo del Pane, 2 - 16100 Genova GE' },
+  { name: 'Ferramenta Brico', vatId: 'IT20212223242', address: 'Via Industriale, 88 - 10040 Torino TO' },
+  { name: 'Pizzeria Bella Napoli', vatId: 'IT25262728292', address: 'Via Tribunali, 120 - 80138 Napoli NA' },
 ]
 
 export const PRESET_PRODUCTS = [
@@ -70,6 +70,12 @@ export function useRandom() {
     )
   }
 
+  function randomTime(): string {
+    const h = randomInt(8, 20)
+    const m = randomInt(0, 59)
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  }
+
   return {
     randomInt,
     randomFloat,
@@ -79,5 +85,6 @@ export function useRandom() {
     randomReceiptNumber,
     randomDateInRange,
     randomDateFull,
+    randomTime,
   }
 }

@@ -10,9 +10,20 @@ const {
   randomReceiptNumber,
   randomDateFull,
   randomDateInRange,
+  randomTime,
   randomInt,
   randomFloat,
 } = useRandom()
+
+const BACKGROUNDS = [
+  { value: 'plain',  label: 'Piano bianco' },
+  { value: 'wood',   label: 'Legno' },
+  { value: 'marble', label: 'Marmo' },
+  { value: 'dark',   label: 'Piano scuro' },
+  { value: 'kraft',  label: 'Carta kraft' },
+]
+
+const PAYMENT_METHODS = ['CONTANTI', 'BANCOMAT', 'CARTA DI CREDITO'] as const
 const toast = useToast()
 
 // ---- Form state ----
@@ -54,12 +65,18 @@ function fmt(n: number) {
 function doRandomStore() {
   const s = randomStore()
   form.value.storeName = s.name
+  form.value.storeAddress = s.address
   form.value.vatId = s.vatId
 }
 
 // ---- Receipt number ----
 function doRandomReceiptNumber() {
   form.value.receiptNumber = randomReceiptNumber()
+}
+
+// ---- Time ----
+function doRandomTime() {
+  form.value.time = randomTime()
 }
 
 // ---- Date ----
@@ -130,7 +147,7 @@ async function downloadReceipt() {
   try {
     const { default: html2canvas } = await import('html2canvas')
     const canvas = await html2canvas(captureRef.value, {
-      backgroundColor: '#ffffff',
+      backgroundColor: null,
       scale: 2,
       useCORS: true,
       logging: false,
@@ -217,6 +234,14 @@ async function downloadReceipt() {
                 </div>
               </UFormField>
 
+              <UFormField label="Address">
+                <UInput
+                  v-model="form.storeAddress"
+                  placeholder="Via Roma, 1 - 00100 Roma RM"
+                  class="w-full"
+                />
+              </UFormField>
+
               <UFormField label="VAT ID">
                 <UInput
                   v-model="form.vatId"
@@ -259,6 +284,20 @@ async function downloadReceipt() {
                     variant="outline"
                     icon="i-lucide-hash"
                     @click="doRandomReceiptNumber"
+                  >
+                    Random
+                  </UButton>
+                </div>
+              </UFormField>
+
+              <UFormField label="Time">
+                <div class="flex gap-2">
+                  <UInput v-model="form.time" type="time" class="flex-1" />
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    icon="i-lucide-clock"
+                    @click="doRandomTime"
                   >
                     Random
                   </UButton>
@@ -327,6 +366,31 @@ async function downloadReceipt() {
                     </div>
                   </Transition>
                 </div>
+              </UFormField>
+
+              <UFormField label="Payment Method">
+                <div class="flex gap-2 flex-wrap">
+                  <UButton
+                    v-for="method in PAYMENT_METHODS"
+                    :key="method"
+                    size="sm"
+                    :color="form.paymentMethod === method ? 'primary' : 'neutral'"
+                    :variant="form.paymentMethod === method ? 'solid' : 'outline'"
+                    @click="form.paymentMethod = method"
+                  >
+                    {{ method }}
+                  </UButton>
+                </div>
+              </UFormField>
+
+              <UFormField v-if="form.paymentMethod === 'CONTANTI'" label="Cash Given (€)">
+                <UInputNumber
+                  v-model="form.cashGiven"
+                  :min="0"
+                  :step="0.50"
+                  :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
+                  class="w-40"
+                />
               </UFormField>
             </div>
           </UCard>
@@ -606,26 +670,41 @@ async function downloadReceipt() {
           <div class="lg:sticky lg:top-20 space-y-4">
             <UCard>
               <template #header>
-                <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-eye" class="text-primary-500 size-4" />
-                  <span class="font-semibold text-sm">Preview</span>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <UIcon name="i-lucide-eye" class="text-primary-500 size-4" />
+                    <span class="font-semibold text-sm">Preview</span>
+                  </div>
+                  <USelect
+                    v-model="form.background"
+                    :items="BACKGROUNDS"
+                    value-key="value"
+                    label-key="label"
+                    size="sm"
+                    class="w-36"
+                    icon="i-lucide-image"
+                  />
                 </div>
               </template>
 
               <!-- Capture wrapper — html2canvas reads this element -->
-              <div class="overflow-x-auto flex justify-center py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <div class="overflow-x-auto flex justify-center rounded-lg">
                 <div
                   ref="captureRef"
-                  class="shadow-lg"
                   style="display: inline-block; line-height: 0;"
                 >
                   <ReceiptPreview
                     :store-name="form.storeName"
+                    :store-address="form.storeAddress"
                     :vat-id="form.vatId"
                     :receipt-number="form.receiptNumber"
                     :date="form.date"
+                    :time="form.time"
                     :products="form.products"
                     :tax-rate="form.taxRate"
+                    :payment-method="form.paymentMethod"
+                    :cash-given="form.cashGiven"
+                    :background="form.background"
                   />
                 </div>
               </div>
