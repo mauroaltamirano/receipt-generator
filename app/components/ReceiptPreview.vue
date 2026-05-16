@@ -51,11 +51,11 @@ function fmtDate(d: string): string {
 }
 
 const BACKGROUNDS: Record<string, string> = {
-  plain: 'background:#e8e8e5; padding:32px 24px;',
-  wood: 'background:#8B5E2D; background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.07) 0,rgba(0,0,0,0) 3px,rgba(255,255,255,0.04) 5px,rgba(0,0,0,0.05) 8px),repeating-linear-gradient(175deg,rgba(255,200,100,0.15) 0,rgba(0,0,0,0.1) 60px); padding:32px 24px;',
-  marble: 'background:#f4f2ef; background-image:linear-gradient(135deg,rgba(180,175,170,0.3) 0,transparent 40%,rgba(160,155,150,0.2) 60%,transparent 100%),repeating-linear-gradient(80deg,rgba(140,130,120,0.06) 0,rgba(140,130,120,0) 8px); padding:32px 24px;',
-  dark: 'background:#1e1e1e; padding:32px 24px;',
-  kraft: 'background:#b8945a; background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.05) 0,rgba(0,0,0,0) 3px,rgba(255,255,255,0.04) 5px); padding:32px 24px;',
+  plain:  'background:#e8e8e5; padding:40px 28px;',
+  wood:   'background:#8B5E2D; background-image:repeating-linear-gradient(90deg,rgba(0,0,0,0.07) 0,rgba(0,0,0,0) 3px,rgba(255,255,255,0.04) 5px,rgba(0,0,0,0.05) 8px),repeating-linear-gradient(175deg,rgba(255,200,100,0.15) 0,rgba(0,0,0,0.1) 60px); padding:40px 28px;',
+  marble: 'background:#f4f2ef; background-image:linear-gradient(135deg,rgba(180,175,170,0.3) 0,transparent 40%,rgba(160,155,150,0.2) 60%,transparent 100%),repeating-linear-gradient(80deg,rgba(140,130,120,0.06) 0,rgba(140,130,120,0) 8px); padding:40px 28px;',
+  dark:   'background:#1e1e1e; padding:40px 28px;',
+  kraft:  'background:#b8945a; background-image:repeating-linear-gradient(45deg,rgba(0,0,0,0.05) 0,rgba(0,0,0,0) 3px,rgba(255,255,255,0.04) 5px); padding:40px 28px;',
 }
 
 const bgStyle = computed(() => BACKGROUNDS[props.background] ?? BACKGROUNDS['plain']!)
@@ -73,22 +73,63 @@ const barcodeSegments = computed(() => {
   bars.push({ width: 2, dark: true }, { width: 1, dark: false }, { width: 2, dark: true })
   return bars
 })
+
+// ── Paper noise / aging effects ──────────────────────────────────────────────
+// Consistent per-receipt values seeded from the receipt number.
+function sr(seed: number, n: number): number {
+  const x = Math.sin(seed * 127.1 + n * 311.7) * 43758.5453
+  return x - Math.floor(x)
+}
+
+const noiseSeed = computed(() => {
+  const n = parseInt((props.receiptNumber || '').replace(/\D/g, '') || '0')
+  return n || 42
+})
+
+// Slight tilt: -1.6° … +1.6°
+const rotation = computed(() => (sr(noiseSeed.value, 0) * 3.2 - 1.6).toFixed(2))
+
+// Paper tint: slight yellowish aging
+const paperBg = computed(() => {
+  const y = Math.floor(sr(noiseSeed.value, 9) * 10)
+  return `rgb(255,${254 - y},${249 - y * 2})`
+})
+
+// Fold 1 – always present
+const fold1Y  = computed(() => (sr(noiseSeed.value, 1) * 32 + 20).toFixed(1))   // 20–52 %
+const fold1Op = computed(() => (sr(noiseSeed.value, 2) * 0.25 + 0.12).toFixed(2)) // 0.12–0.37
+
+// Fold 2 – appears ~60 % of the time
+const fold2Y    = computed(() => (sr(noiseSeed.value, 3) * 20 + 62).toFixed(1))  // 62–82 %
+const fold2Op   = computed(() => (sr(noiseSeed.value, 6) * 0.18 + 0.08).toFixed(2))
+const showFold2 = computed(() => sr(noiseSeed.value, 4) > 0.40)
+
+// Shadow side: which corners cast a slightly longer shadow (paper not flat)
+const shadowBias = computed(() => {
+  const rot = parseFloat(rotation.value)
+  const x = rot * 1.5
+  const y = sr(noiseSeed.value, 7) * 6 + 2
+  return `${x.toFixed(1)}px ${y.toFixed(1)}px 22px rgba(0,0,0,0.28), 0 1px 4px rgba(0,0,0,0.14)`
+})
 </script>
 
 <template>
   <div :style="bgStyle">
     <!-- Receipt paper -->
     <div
-      style="
-        font-family: 'Courier New', Courier, monospace;
-        background: #fffef9;
-        color: #1a1a1a;
-        width: 340px;
-        box-sizing: border-box;
-        line-height: 1.5;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 1px 4px rgba(0,0,0,0.15);
-        position: relative;
-      "
+      :style="{
+        fontFamily: '\'Courier New\', Courier, monospace',
+        background: paperBg,
+        color: '#1a1a1a',
+        width: '340px',
+        boxSizing: 'border-box',
+        lineHeight: '1.5',
+        boxShadow: shadowBias,
+        position: 'relative',
+        transform: `rotate(${rotation}deg)`,
+        transformOrigin: 'center top',
+        overflow: 'hidden',
+      }"
     >
       <!-- Top tear edge -->
       <div
@@ -96,11 +137,10 @@ const barcodeSegments = computed(() => {
           height: 10px;
           background: repeating-linear-gradient(
             90deg,
-            #fffef9 0, #fffef9 6px,
-            transparent 6px, transparent 10px
+            transparent 0, transparent 6px,
+            #e0ddd6 6px, #e0ddd6 10px
           );
-          border-bottom: 1px dashed #ccc;
-          margin-bottom: 0;
+          border-bottom: 1px dashed #bbb;
         "
       />
 
@@ -249,7 +289,7 @@ const barcodeSegments = computed(() => {
               :key="i"
               :style="{
                 width: bar.width + 'px',
-                background: bar.dark ? '#1a1a1a' : '#fffef9',
+                background: bar.dark ? '#1a1a1a' : paperBg,
                 flexShrink: '0',
               }"
             />
@@ -266,12 +306,99 @@ const barcodeSegments = computed(() => {
           height: 10px;
           background: repeating-linear-gradient(
             90deg,
-            #fffef9 0, #fffef9 6px,
-            transparent 6px, transparent 10px
+            transparent 0, transparent 6px,
+            #e0ddd6 6px, #e0ddd6 10px
           );
-          border-top: 1px dashed #ccc;
+          border-top: 1px dashed #bbb;
         "
       />
+
+      <!-- ── Noise / aging overlays (pointer-events:none, on top of content) ── -->
+
+      <!-- Fine paper grain -->
+      <div
+        style="
+          position:absolute; inset:0; pointer-events:none;
+          background-image: radial-gradient(rgba(0,0,0,0.028) 1px, transparent 1px);
+          background-size: 3px 3px;
+        "
+      />
+
+      <!-- Edge vignette – simulates darkening toward the edges from handling -->
+      <div
+        style="
+          position:absolute; inset:0; pointer-events:none;
+          background:
+            linear-gradient(to right,  rgba(0,0,0,0.04) 0%, transparent 8%, transparent 92%, rgba(0,0,0,0.05) 100%),
+            linear-gradient(to bottom, rgba(0,0,0,0.03) 0%, transparent 12%, transparent 88%, rgba(0,0,0,0.06) 100%);
+        "
+      />
+
+      <!-- Fold crease 1 -->
+      <div
+        :style="{
+          position: 'absolute',
+          left: '0',
+          right: '0',
+          top: fold1Y + '%',
+          pointerEvents: 'none',
+        }"
+      >
+        <!-- shadow above the crease -->
+        <div
+          :style="{
+            height: '12px',
+            marginTop: '-12px',
+            background: `linear-gradient(to top, rgba(0,0,0,${fold1Op}), transparent)`,
+          }"
+        />
+        <!-- bright crease line (peak of the fold reflects light) -->
+        <div
+          style="
+            height: 1px;
+            background: linear-gradient(90deg, transparent 3%, rgba(255,255,255,0.9) 18%, rgba(255,255,255,0.75) 82%, transparent 97%);
+          "
+        />
+        <!-- shadow below the crease -->
+        <div
+          :style="{
+            height: '10px',
+            background: `linear-gradient(to bottom, rgba(0,0,0,${fold1Op}), transparent)`,
+          }"
+        />
+      </div>
+
+      <!-- Fold crease 2 (occasional) -->
+      <div
+        v-if="showFold2"
+        :style="{
+          position: 'absolute',
+          left: '0',
+          right: '0',
+          top: fold2Y + '%',
+          pointerEvents: 'none',
+        }"
+      >
+        <div
+          :style="{
+            height: '8px',
+            marginTop: '-8px',
+            background: `linear-gradient(to top, rgba(0,0,0,${fold2Op}), transparent)`,
+          }"
+        />
+        <div
+          style="
+            height: 1px;
+            background: linear-gradient(90deg, transparent 8%, rgba(255,255,255,0.7) 28%, rgba(255,255,255,0.55) 72%, transparent 92%);
+          "
+        />
+        <div
+          :style="{
+            height: '7px',
+            background: `linear-gradient(to bottom, rgba(0,0,0,${fold2Op}), transparent)`,
+          }"
+        />
+      </div>
     </div>
   </div>
 </template>
