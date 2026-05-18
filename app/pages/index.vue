@@ -146,10 +146,12 @@ function buildReceiptData() {
 }
 
 // ---- Capture helper ----
+// html-to-image is used instead of html2canvas because html2canvas does not
+// support the oklch() color function used by Tailwind v4 / Nuxt UI.
 async function captureElement(el: HTMLElement): Promise<Blob> {
-  const { default: html2canvas } = await import('html2canvas')
-  const canvas = await html2canvas(el, { backgroundColor: null, scale: 2, useCORS: true, logging: false })
-  return new Promise((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'))
+  const { toBlob } = await import('html-to-image')
+  const blob = await toBlob(el, { pixelRatio: 2 })
+  return blob!
 }
 
 // ---- Single PNG download (uses live preview) ----

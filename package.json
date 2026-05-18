@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@nuxt/ui": "^3.1.0",
-    "html2canvas": "^1.4.1",
+    "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",
     "nuxt": "^4.0.0"
   }
