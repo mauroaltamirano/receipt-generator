@@ -298,6 +298,10 @@ const shadowBias = computed(() => {
         <div style="text-align:center; font-size:8px; color:#888; letter-spacing:3px;">
           {{ receiptNumber ? receiptNumber.padStart(13, '0') : '0000000000000' }}
         </div>
+
+        <div style="text-align:center; font-size:9px; color:#555; margin-top:10px; letter-spacing:0.5px;">
+          Documento n. {{ receiptNumber || '------' }}
+        </div>
       </div>
 
       <!-- Bottom tear edge -->
