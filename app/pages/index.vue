@@ -105,6 +105,18 @@ function doReset() {
   form.value = defaultData()
 }
 
+// Applies all checked randomize settings to the live form so the preview updates
+function randomizeAll() {
+  const data = buildReceiptData()
+  form.value.storeName    = data.storeName
+  form.value.storeAddress = data.storeAddress
+  form.value.vatId        = data.vatId
+  form.value.receiptNumber = data.receiptNumber
+  form.value.date         = data.date
+  form.value.time         = data.time
+  form.value.products     = data.products
+}
+
 // ---- Build one receipt's data (with randomization applied) ----
 function buildReceiptData() {
   const r    = form.value.randomize
@@ -226,9 +238,14 @@ function handleGenerate() {
           <UIcon name="i-lucide-receipt" class="text-primary-500 size-6" />
           <h1 class="text-lg font-bold text-gray-900 dark:text-white">Receipt Generator</h1>
         </div>
-        <UButton color="neutral" variant="ghost" icon="i-lucide-rotate-ccw" size="sm" @click="doReset">
-          Reset
-        </UButton>
+        <div class="flex items-center gap-2">
+          <UButton color="primary" variant="soft" icon="i-lucide-shuffle" size="sm" @click="randomizeAll">
+            Randomize
+          </UButton>
+          <UButton color="neutral" variant="ghost" icon="i-lucide-rotate-ccw" size="sm" @click="doReset">
+            Reset
+          </UButton>
+        </div>
       </div>
     </header>
 
